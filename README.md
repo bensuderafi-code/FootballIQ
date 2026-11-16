@@ -1,64 +1,43 @@
 # FootballIQ
+Transparent multi-league football analysis, fixture tracking and accountable prediction records.
 
-Transparent, model-based football analysis. Multi-league. Built around pre-match forecast logging and honest performance measurement.
+## Current application
+- Responsive React dashboard and multi-competition match centre.
+- Independent-Poisson probability baseline, correct-score estimates, CSV export and Brier/RPS scoring.
+- Live fixture/result ingestion from API-Sports (API-Football) through a scheduled GitHub Actions job.
+- Optional shared append-only prediction ledger using Supabase.
+- GitHub Pages deployment on every main-branch push.
 
-## What is included
+## Activate live fixtures and results
+1. Obtain an API-Football key from API-Sports.
+2. In GitHub, open Settings > Secrets and variables > Actions > New repository secret.
+3. Create secret API_FOOTBALL_KEY with the provider key.
+4. Run Actions > Refresh FootballIQ fixtures and results > Run workflow. It also runs every six hours.
+5. The job writes public/data/fixtures.json; GitHub Pages redeploys refreshed data automatically.
 
-- Responsive React dashboard and match centre
-- Competition filters for Premier League, LaLiga, Serie A, Bundesliga, Ligue 1, Champions League, MLS, Brasileirão, Liga MX and women's football
-- Transparent independent-Poisson score grid
-- 1X2, over-2.5, both-teams-to-score and ranked correct-score estimates
-- Pre-match prediction ledger with timestamp and model version
-- CSV export
-- Manual result entry and Brier Score / Ranked Probability Score calculations
-- Sponsorship placements page and Women's World Cup 2027 concept
+The scheduled job requests nine competitions for the 2026 season and a rolling 14-day date window. Provider plan quotas and competition coverage apply. A missing/invalid key causes the workflow to fail visibly rather than silently showing fabricated live data.
 
-## Important status and data limitations
+## Activate the shared prediction ledger
+1. Create a Supabase project.
+2. Run supabase/schema.sql in the Supabase SQL Editor.
+3. In Supabase Project Settings > API, copy the Project URL and anon/public key.
+4. In GitHub repository Settings > Secrets and variables > Actions > Variables, add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.
+5. Push or manually run Deploy FootballIQ to GitHub Pages.
 
-This repository is a functional **prototype**, not a live-data production forecasting service. The fixture list and expected-goal inputs in `src/main.jsx` are illustrative demo values. They are not current official fixtures, live odds, validated model outputs or verified forecasts.
+The anon key is intended for browser use; never put a Supabase service-role key in frontend variables. The SQL policy allows public reads and inserts but denies updates/deletes. Hashes are client-generated integrity fingerprints, not proof of identity or a fully tamper-proof audit. Public submissions are not independently verified; production use needs server-side validation, abuse controls, immutable snapshots and independent audit.
 
-The accuracy lab scores only forecasts logged in the same browser and manually entered results. Browser localStorage is not a public, tamper-evident audit log. The demo intentionally shows no invented historical accuracy, audience metrics, subscribers, engagement or sponsor commitments.
-
-The sponsorship page uses an example email address (`partnerships@footballiq.example`); replace it with a verified contact before publishing outreach. FootballIQ is not affiliated with FIFA or any football governing body. Predictions are probabilistic estimates, not betting or financial advice.
+## Forecast limitations
+API-Sports supplies fixture and final-score data, not expected-goal inputs. Until a validated team-strength/xG data source is added, each live fixture uses generic baseline inputs (1.35 home, 1.15 away). These are not team-specific forecasts. The model is a transparent teaching baseline, not betting advice or a claim of predictive superiority.
 
 ## Run locally
-
-Requires Node.js 18 or later.
-
-```bash
-npm install
-npm run dev
-```
-
-Create a production build:
-
-```bash
-npm run build
-npm run preview
-```
-
-## Model
-
-The baseline assumes independent Poisson goal counts:
-
-`P(X=k)=e^-λ λ^k/k!`
-
-The home and away goal distributions are combined into a score grid (0–8 goals per side). Probabilities are aggregated into home/draw/away, over 2.5 and both-teams-to-score markets. This is a transparent teaching baseline, not a claim of predictive superiority. Production use requires documented historical training data, calibration, out-of-sample testing, uncertainty analysis and versioned input snapshots.
+Requires Node.js 18+. Run npm install, npm run dev, and npm run build.
+For local Supabase settings, copy .env.example to .env.local and fill in the two public Vite variables.
 
 ## Accuracy metrics
+Brier Score and Ranked Probability Score are calculated only where a logged forecast has a matching result. The shared ledger is an append-only prototype, not an independently audited benchmark. No historical accuracy, traffic, audience or sponsor commitments are invented.
 
-For three-class outcome probability vector (p) and realized class (o), the Brier score is the mean of squared one-hot errors. The Ranked Probability Score compares cumulative probabilities over the ordered home/draw/away outcomes. Lower scores are better.
-
-## Production roadmap
-
-1. Integrate a licensed, reliable fixture and results data provider.
-2. Build a server-side prediction service with immutable pre-kickoff snapshots.
-3. Store records in a database with UTC timestamps, model/data versions and cryptographic audit hashes.
-4. Add scheduled result ingestion, void/postponed-match handling and reproducible scoring.
-5. Publish weekly per-league metrics with sample counts, confidence intervals and calibration plots.
-6. Add privacy, security, monitoring, rate limits and deployment secrets.
-7. Verify actual traffic and engagement before quoting sponsorship prices.
+## Partnerships
+The partner page still contains a placeholder contact address. Replace it with a verified email before external sponsorship outreach.
 
 ## Licence
-
-MIT — see [LICENSE](LICENSE).
+MIT — see LICENSE.
